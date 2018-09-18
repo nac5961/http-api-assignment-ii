@@ -6,7 +6,140 @@
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.min.js"></script>
   <script type="text/babel">
+	//Function to convert status code into a message
+	const processStatusCode = (statusCode) => {
+		let statusStr = '';
+		
+		//Convert status code to message
+		switch(statusCode){
+			case 200:
+				statusStr = 'Success';
+				break;
+			case 201:
+				statusStr = 'Create';
+				break;
+			case 204:
+				statusStr = 'Updated (No Content)';
+				break;
+			case 400:
+				statusStr = 'Bad Request';
+				break;
+			case 404:
+				statusStr = 'Resource Not Found';
+				break;
+		}
+		
+		return statusStr;
+	};
+	
+	//Function to display response from the server
+	const handleResponse = (xhr, method) => {
+		console.dir(xhr);
+	
+		//Get reference to content
+		const content = document.querySelector('#content');
+		
+		//Clear the contents
+		content.innerHTML = '';
+	
+		//Create h1 element with status and add to page
+		const h1 = document.createElement('h1');
+		h1.textContent = processStatusCode(xhr.status);
+		content.appendChild(h1);
+	
+		//Parse json and display the contents
+		if (method === 'get' || method === 'post' && xhr.status != 204){
+			const json = JSON.parse(xhr.response);
+			
+			//Create p element with message and add to page
+			if (json.message){
+				const p = document.createElement('p');
+				p.textContent = `Message: ${json.message}`;
+				content.appendChild(p);
+			}
+			
+			//Create p element with user data and add to page
+			if (json.users){
+				const p = document.createElement('p');
+				p.textContent = JSON.stringify(json.users);
+				content.appendChild(p);
+			}
+		}
+	};
+	
+	//Function to send an AJAX request
+	const sendAJAX = (e, method, url) => {
+		//Create xhr object
+		const xhr = new XMLHttpRequest();
+		
+		//Set method and url
+		xhr.open(method, url);
+		
+		//Set accept request header
+		xhr.setRequestHeader('Accept', 'application/json');
+		
+		//Setup callback
+		xhr.onload = () => handleResponse(xhr, method); 
+		
+		//Send the request
+		xhr.send();
+		
+		//Prevent the form from submitting and changing pages
+		e.preventDefault();
+		return false;
+	};
+	
+	//Function to send Post request
+	const sendPOST = (e, method, url) => {
+		//Get reference to name and age inputs
+		const nameField = document.querySelector('#nameField');
+		const ageField = document.querySelector('#ageField');
+		
+		//Create xhr object
+		const xhr = new XMLHttpRequest();
+		
+		//Set method and url
+		xhr.open(method, url);
+		
+		//Set request headers
+		xhr.setRequestHeader('Accept', 'application/json'); //data client wants to get back
+		xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded'); //data client will send to server
+		
+		//Setup callback
+		xhr.onload = () => handleResponse(xhr, method);
 
+		//Set data to send to the server
+		const formData = `name=${nameField.value}&age=${ageField.value}`;
+		
+		//Send the request
+		xhr.send(formData);
+		
+		//Prevent the form from submitting and changing pages
+		e.preventDefault();
+		return false;
+	};
+	
+	//Function to get the selected value in a select element
+	const getSelectedValue = (id) => {
+		return document.querySelector(id).value;
+	};
+	
+	const init = () => {
+		//Get reference to the forms
+		const userForm = document.querySelector('#userForm');
+		const nameForm = document.querySelector('#nameForm');
+		
+		//Setup callback
+		const sendRequest = (e) => sendAJAX(e, getSelectedValue('#methodSelect'), getSelectedValue('#urlField'));
+		const sendPostRequest = (e) => sendPOST(e, nameForm.getAttribute('method'), nameForm.getAttribute('action'));
+		
+		//Setup event listeners
+		userForm.addEventListener('submit', sendRequest);
+		nameForm.addEventListener('submit', sendPostRequest);
+		
+	};
+  
+	window.onload = init;
   </script>
 </head>
 <body>
