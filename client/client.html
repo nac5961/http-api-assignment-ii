@@ -34,7 +34,6 @@
 	
 	//Function to display response from the server
 	const handleResponse = (xhr, method) => {
-		console.dir(xhr);
 	
 		//Get reference to content
 		const content = document.querySelector('#content');
@@ -50,6 +49,7 @@
 		//Parse json and display the contents
 		if (method === 'get' || method === 'post' && xhr.status != 204){
 			const json = JSON.parse(xhr.response);
+			console.dir(json);
 			
 			//Create p element with message and add to page
 			if (json.message){
